@@ -125,6 +125,7 @@ class Tree
                 {
                     if(root != nullptr)
                     {
+                        //
                         st.push(root);
                         this->findFirst();
                         // for(int i = root->children.size() - 1; i >= 0; --i)

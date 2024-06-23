@@ -4,6 +4,7 @@
 
 TEST_CASE("Test pre order traversal")
 {   
+    //
     Tree<int> tree;
     Node<int> root(1);
     tree.add_root(&root);

@@ -3,7 +3,7 @@ CXXFLAGS = -std=c++11 -Wsign-conversion -g
 SRCOBJS = demo.o
 TESTOBJS = Test.o TestCounter.o
 VALGRIND_FLAGS=-v --leak-check=full --show-leak-kinds=all  --error-exitcode=99
-
+#
 all: demo
 
 demo: $(SRCOBJS)
