@@ -1,229 +1,243 @@
-
+// @author: oz.atar@msmail.ariel.ac.il
 
 #pragma once
 
+#include <algorithm>
 #include <vector>
 #include <stack>
+#include <queue>
 #include <stdexcept>
+#include <iostream>
 using std::vector;
 using std::stack;
+using std::queue;
 using std::invalid_argument;
-
-
-#include <iostream>
 using std::cout;
 using std::endl;
 
-template <typename T>
-struct Node
-{
-    int key;
-    T value;
-    vector<Node<T>*> children;
-    Node(T value) : value(value) {}
-};
+#include "Iterators.hpp"
+#include "Node.hpp"
 
-template <typename T>
+template <typename T, size_t max_children = 2>
 class Tree
 {
     private:
-        
-        int max_children;
-
-    public:
         Node<T>* root;
-        Tree() : max_children(2), root(nullptr) {}
-        Tree(int max_children) : max_children(max_children), root(nullptr) {}
+    public:
 
+        /** 
+         * @brief Default constructor, create a binary tree.
+        **/
+        Tree() : root(nullptr) {};
+        
         int add_root(Node<T>* node);
 
         int add_sub_node(Node<T> *parent, Node<T>* child);
 
-        class PreOrderIterator
+        int get_max_children() const
         {
-            private:
-                stack<Node<T>*> st;
-                Node<T>* current;
-            public:
-
-                PreOrderIterator(Node<T>* root) : current(root)
-                {
-                    if(root != nullptr)
-                    {
-                        for(int i = root->children.size() - 1; i >= 0; --i)
-                        {
-                            st.push(root->children[(size_t)i]);
-                        }
-                    }
-                }
-                ~PreOrderIterator() 
-                {
-                    while(!st.empty())
-                    {
-                        st.pop();
-                    }
-                }
-
-                T& operator*() const
-                {
-                    return current->value;
-                }
-
-                T* operator->() const
-                {
-                    return &(current->value);
-                }
-
-                PreOrderIterator& operator++()
-                {
-                    if(st.empty())
-                    {
-                        current = nullptr;
-                    }
-                    else
-                    {
-                        current = st.top();
-                        st.pop();
-                        for(int i = current->children.size() - 1; i >= 0; --i)
-                        {
-                            st.push(current->children[(size_t)i]);
-                        }  
-                    }
-                    return *this;
-                }
-
-                PreOrderIterator operator++(int)
-                {
-                    PreOrderIterator tmp = *this;
-                    ++(*this);
-                    return tmp;
-                }
-
-                bool operator==(const PreOrderIterator& other) const
-                {
-                    return current == other.current;
-                }
-
-                bool operator!=(const PreOrderIterator& other) const
-                {
-                    return current != other.current;
-                }
-        };
-
-        class PostOrderIterator
+            return max_children;
+        }
+        Dfs_scan<T> pre_order_begin()
         {
-            private:
-                stack<Node<T>*> st;
-                stack<Node<T>*> st2;
-                Node<T>* current;
+            return Dfs_scan<T>(this->root);
+        }
 
-                void findFirst();
+        Dfs_scan<T> pre_order_end()
+        {
+            return Dfs_scan<T>(nullptr);
+        }
 
-            public:
-                 
-                PostOrderIterator(Node<T>* root)
-                {
-                    if(root != nullptr)
-                    {
-                        //
-                        st.push(root);
-                        this->findFirst();
-                        // for(int i = root->children.size() - 1; i >= 0; --i)
-                        // {
-                        //     st.push(root->children[(size_t)i]);
-                        // }
-                        // root->children.clear();
-                        // current = st.top();
-                        // st.pop();
-                        // for(int i = current->children.size() - 1; i >= 0; --i)
-                        // {
-                        //     st.push(current->children[(size_t)i]);
-                        // }
-                        // current->children.clear();
-                    }
-                }
-                ~PostOrderIterator() 
-                {
-                    while(!st.empty())
-                    {
-                        st.pop();
-                    }
-                }
+        Dfs_scan<T> post_order_begin()
+        {
+            return Dfs_scan<T>(this->root);
+        }
 
-                T& operator*() const
-                {
-                    return current->value;
-                }
+        Dfs_scan<T> post_order_end()
+        {
+            return Dfs_scan<T>(nullptr);
+        }
 
-                T* operator->() const
-                {
-                    return &(current->value);
-                }
+        Dfs_scan<T> in_order_begin()
+        {
+            return Dfs_scan<T>(this->root);
+        }
 
-                PostOrderIterator& operator++()
-                {
-                    if(st.empty())
-                    {
-                        current = nullptr;
-                    }
-                    else
-                    {
-                        auto temp = st.top();
-                        for(int i = temp->children.size() -1 ; i >= 0 ; --i)
-                        {
-                            st.push(temp->children[(size_t)i]);
-                        }
-                        temp->children.clear();
-                        current = st.top();
-                        st.pop();
-                    }
-                    return *this;
-                }
+        Dfs_scan<T> in_order_end()
+        {
+            return Dfs_scan<T>(nullptr);
+        }
 
-                PostOrderIterator operator++(int)
-                {
-                    PostOrderIterator tmp = *this;
-                    ++(*this);
-                    return tmp;
-                }
+        Dfs_scan<T> begin_dfs_scan()
+        {
+            return Dfs_scan<T>(this->root);
+        }
 
-                bool operator==(const PostOrderIterator& other) const
-                {
-                    return current == other.current;
-                }
+        Dfs_scan<T> end_dfs_scan()
+        {
+            return Dfs_scan<T>(nullptr);
+        }
 
-                bool operator!=(const PostOrderIterator& other) const
-                {
-                    return this->current != other.current;
-                }
-        };
+        Bfs_scan<T> begin_bfs_scan()
+        {
+            return Bfs_scan<T>(this->root);
+        }
 
-    PreOrderIterator pre_order_begin()
-    {
-        return PreOrderIterator(this->root);
-    }
+        Bfs_scan<T> end_bfs_scan()
+        {
+            return Bfs_scan<T>(nullptr);
+        }
 
-    PreOrderIterator pre_order_end()
-    {
-        return PreOrderIterator(nullptr);
-    }
+        Bfs_scan<T> begin()
+        {
+            return Bfs_scan<T>(this->root);
+        }
 
-    PostOrderIterator post_order_begin()
-    {
-        return *(new PostOrderIterator(this->root));
-    }
+        Bfs_scan<T> end()
+        {
+            return Bfs_scan<T>(nullptr);
+        }
 
-    PostOrderIterator post_order_end()
-    {
-        return *(new PostOrderIterator(nullptr));
-    }
+        heapIterator<T> heap_begin()
+        {
+            return heapIterator<T>(this->root);
+        }
+        heapIterator<T> heap_end()
+        {
+            return heapIterator<T>(nullptr);
+        }
 
 };
 
+template <typename T, size_t max_children>
+int Tree<T, max_children>::add_root(Node<T>* node)
+{
+    if (node == nullptr) 
+    {
+        throw std::invalid_argument("Can not initialize tree with a null node.");
+    }
+    this->root = node;
+    return 0;
+}
+
+template <typename T, size_t max_children>
+int Tree<T, max_children>::add_sub_node(Node<T> *parent, Node<T>* child) {
+    if (parent == nullptr) {
+        throw std::invalid_argument("Can not add a child to a null parent.");
+    }
+    if(parent->children.size() == max_children) {
+        throw std::invalid_argument("Parent node already has the maximum number of children.");
+    }
+    parent->children.push_back(child);
+    return 0;
+}
 
 template <typename T>
-int Tree<T>::add_root(Node<T>* node) {
-    if (node == nullptr) {
+class Tree<T, 2>
+{
+    private:
+        Node<T>* root;
+    public:
+
+        /** 
+         * @brief Default constructor, create a binary tree.
+        **/
+        Tree() : root(nullptr) {};
+        
+        int add_root(Node<T>* node);
+
+        int add_sub_node(Node<T> *parent, Node<T>* child);
+
+        int get_max_children() const
+        {
+            return 2;
+        }
+
+    PreOrderIterator<T> pre_order_begin()
+    {
+        return PreOrderIterator<T>(this->root);
+    }
+
+    PreOrderIterator<T> pre_order_end()
+    {
+        return PreOrderIterator<T>(nullptr);
+    }
+
+    PostOrderIterator<T> post_order_begin()
+    {
+        return PostOrderIterator<T>(this->root);
+    }
+
+    PostOrderIterator<T> post_order_end()
+    {
+        return PostOrderIterator<T>(nullptr);
+    }
+
+    InOrderIterator<T> in_order_begin()
+    {
+        return InOrderIterator<T>(this->root);
+    }
+
+    InOrderIterator<T> in_order_end()
+    {
+        return InOrderIterator<T>(nullptr);
+    }
+
+    Dfs_scan<T> begin_dfs_scan()
+    {
+        return Dfs_scan<T>(this->root);
+    }
+
+    Dfs_scan<T> end_dfs_scan()
+    {
+        return Dfs_scan<T>(nullptr);
+    }
+
+    Bfs_scan<T> begin_bfs_scan()
+    {
+        return Bfs_scan<T>(this->root);
+    }
+
+    Bfs_scan<T> end_bfs_scan()
+    {
+        return Bfs_scan<T>(nullptr);
+    }
+
+    static Bfs_scan<T> begin_bfs_scan(Node<T>* root)
+    {
+        return Bfs_scan<T>(root);
+    }
+
+    static Bfs_scan<T> end_bfs_scan(Node<T>* root)
+    {
+        return Bfs_scan<T>(nullptr);
+    }
+
+    Bfs_scan<T> begin()
+    {
+        return Bfs_scan<T>(this->root);
+    }
+
+    Bfs_scan<T> end()
+    {
+        return Bfs_scan<T>(nullptr);
+    }
+
+    heapIterator<T> heap_begin()
+    {
+        return heapIterator<T>(this->root);
+    }
+    heapIterator<T> heap_end()
+    {
+        return heapIterator<T>(nullptr);
+    }
+};
+
+template <typename T>
+int Tree<T, 2>::add_root(Node<T>* node)
+{
+    if (node == nullptr) 
+    {
         throw std::invalid_argument("Can not initialize tree with a null node.");
     }
     this->root = node;
@@ -231,32 +245,15 @@ int Tree<T>::add_root(Node<T>* node) {
 }
 
 template <typename T>
-int Tree<T>::add_sub_node(Node<T> *parent, Node<T>* child) {
+int Tree<T, 2>::add_sub_node(Node<T> *parent, Node<T>* child) 
+{
     if (parent == nullptr) {
         throw std::invalid_argument("Can not add a child to a null parent.");
     }
-    if(parent->children.size() == this->max_children) {
+    if(parent->children.size() == 2) {
         throw std::invalid_argument("Parent node already has the maximum number of children.");
-    }
-    if(child == nullptr) {
-        throw std::invalid_argument("Can not add a null child to a parent.");
     }
     parent->children.push_back(child);
     return 0;
 }
 
-template <typename T>
-void Tree<T>::PostOrderIterator::findFirst()
-{
-    while(st.top()->children.size() > 0)
-    {
-        auto temp = st.top();
-        for(int i = temp->children.size() -1 ; i >= 0 ; --i)
-        {
-            st.push(temp->children[(size_t)i]);
-        }
-        temp->children.clear();
-    }
-    current = st.top();
-    st.pop();
-}
