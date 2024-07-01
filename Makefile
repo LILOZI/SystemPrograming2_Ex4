@@ -4,11 +4,12 @@ SRCOBJS = demo.o Complex.o
 HEADERS = Tree.hpp Node.hpp Iterators.hpp Complex.hpp
 TESTOBJS = Test.o TestCounter.o
 VALGRIND_FLAGS=-v --leak-check=full --show-leak-kinds=all  --error-exitcode=99
+LDFLAGS = -lsfml-graphics -lsfml-window -lsfml-system
 #
 all: demo
 
 demo: $(SRCOBJS) $(HEADERS)
-	$(CXX) $(CXXFLAGS) -o $@ $(SRCOBJS)
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) -o $@ $(SRCOBJS)
 
 demo.o: demo.cpp $(HEADERS)
 	$(CXX) $(CXXFLAGS) -c demo.cpp
