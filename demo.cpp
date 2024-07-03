@@ -3,7 +3,7 @@
 
 int main(void)
 {
-    Tree<int,3> tree;
+    Tree<int> tree;
     Node<int> root(1);
     tree.add_root(&root);
     Node<int> child(2);
@@ -18,16 +18,7 @@ int main(void)
     Node<int> child5(6);
     tree.add_sub_node(&child2, &child5);
 
-    vector<int> expected = {1, 2, 4, 3, 5, 6};
-    Dfs_scan<int> it = tree.pre_order_begin();
-    auto vecIt = expected.begin();
-    while(it != tree.pre_order_end())
-    {   
-        cout << *it << endl;
-        it++;
-    }
-
-    tree.draw();
+    tree.drawTree();
     
     return 0;
 }

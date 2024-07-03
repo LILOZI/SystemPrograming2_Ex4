@@ -24,6 +24,10 @@ using std::endl;
 #include <cmath>
 #include <iomanip>  
 
+
+/**
+ * @brief A class representing a tree data structure. 
+**/
 template <typename T, size_t max_children = 2>
 class Tree
 {
@@ -36,8 +40,20 @@ class Tree
         **/
         Tree() : root(nullptr) {};
         
+        /**
+         * @brief Add a root node to the tree, if there is a root already it will be overwritten.
+         * @param node The node to be set as the root of the tree.
+         * @throw invalid_argument If the node is null. 
+        **/
         int add_root(Node<T>* node);
 
+        /**
+         * @brief Add a child node to a parent node.
+         * @param parent The parent node to which the child will be added.
+         * @param child The child node to be added.
+         * @throw invalid_argument If the parent is null.
+         * @throw invalid_argument If the parent already has the maximum number of children. 
+        **/
         int add_sub_node(Node<T> *parent, Node<T>* child);
 
         int get_max_children() const
@@ -113,53 +129,59 @@ class Tree
             return heapIterator<T>(nullptr);
         }
 
-    void draw()
+    /**
+     * @brief Open a windwo and draw the tree.
+    **/
+    void drawTree()
     {
-        sf::RenderWindow window(sf::VideoMode(800, 600), "Tree Visualization"); // Create a window
-        while (window.isOpen()) // While the window is open
+        sf::RenderWindow window(sf::VideoMode(1400, 1000), "Tree Visualization"); 
+        while (window.isOpen()) 
         {
-            sf::Event event; // Create an event
-            while (window.pollEvent(event)) // While there are events to process
+            // Keep displaying the window until it's closed
+            sf::Event event; 
+            while (window.pollEvent(event)) 
             {
-                if (event.type == sf::Event::Closed) // If the event is a close event, close the window
+                if (event.type == sf::Event::Closed) 
                     window.close();
             }
 
-            window.clear(sf::Color::White); // Clear the window, set the background color to white
+            window.clear(sf::Color::Black); 
 
-            drawTree(window, root, 400, 50, 150, 100, 0); //calls the drawTree function to draw the tree
+            // Draw tree widgets
+            drawTree(window, root, 650, 100, 200, 150); 
 
-            window.display(); // Display the window
+            // display new window
+            window.display(); 
         }
     }
 
 private:
    
-    // Helper function to format numbers with a specific precision
+    
     std::string formatData(const T &data, int precision = 5)
     {
-        std::stringstream ss; // Create a stringstream
-        ss << std::fixed << std::setprecision(precision) << data; // Set the precision of the stringstream
-        return ss.str(); // Return the string
+        std::stringstream ss; 
+        ss << std::fixed << std::setprecision(precision) << data; 
+        return ss.str(); 
     }
 
     // Helper function to truncate text and add ellipsis if necessary
     std::string truncateText(const sf::Text &text, float maxWidth)
     {
-        std::string str = text.getString(); // Get the string from the text
-        std::string truncatedStr = str; // Set the truncated string to the original string
-        sf::Text tempText = text; // Create a temporary text object
+        std::string str = text.getString(); 
+        std::string truncatedStr = str; 
+        sf::Text tempText = text; 
 
-        // Check if the text width exceeds the maximum allowed width
+        
         if (text.getLocalBounds().width > maxWidth)
         {
-            // Find the maximum length that fits within the width
+            
             for (size_t i = 0; i < str.size(); ++i)
             {
-                truncatedStr = str.substr(0, i) + "..."; // Add ellipsis to the string
-                tempText.setString(truncatedStr); // Set the string of the temporary text object
+                truncatedStr = str.substr(0, i) + "..."; 
+                tempText.setString(truncatedStr); 
 
-                if (tempText.getLocalBounds().width > maxWidth) //if the text is too long, truncate it
+                if (tempText.getLocalBounds().width > maxWidth) 
                 {
                     truncatedStr = str.substr(0, i - 1) + "...";
                     break;
@@ -174,28 +196,26 @@ private:
         if (!node || node->children.empty())
             return 0.0f;
 
-        // Sum the widths of all children subtrees
+        
         float totalWidth = 0.0f;
         for (auto &child : node->children)
         {
             totalWidth += calculateSubtreeWidth(child, xOffset) + xOffset;
         }
 
-        // The total width should be adjusted by removing the extra xOffset added to the last child
         totalWidth -= (2 * xOffset)  ;
 
-        // Ensure at least a minimum width for a single child
         return std::max(totalWidth, xOffset);
     }
 
-void drawTree(sf::RenderWindow &window, Node<T> *node, float x, float y, float xOffset, float yOffset, int level)
+void drawTree(sf::RenderWindow &window, Node<T> *node, float x, float y, float xOffset, float yOffset)
 {
     if (!node)
         return;
 
     // Draw the node
-    sf::CircleShape circle(30);
-    circle.setFillColor(sf::Color::Green);
+    sf::CircleShape circle(40);
+    circle.setFillColor(sf::Color::Red);
     circle.setPosition(x, y);
 
     // Load the font
@@ -207,88 +227,90 @@ void drawTree(sf::RenderWindow &window, Node<T> *node, float x, float y, float x
     }
 
     // Format the node data for display with a precision of 5
+    // std::string nodeDataStr = std::to_string(node->value);
     std::string nodeDataStr = formatData(node->value);
 
     // Create the text for the node data
     sf::Text text;
     text.setFont(font);
     text.setString(nodeDataStr);
-    text.setCharacterSize(15);
+    text.setCharacterSize(30);
     text.setFillColor(sf::Color::Black);
 
     // Initial centering of text based on its original content
     sf::FloatRect textRect = text.getLocalBounds();
     text.setOrigin(textRect.left + textRect.width / 2.0f, textRect.top + textRect.height / 2.0f);
 
-    // Calculate the circle's center
     float circleCenterX = x + circle.getRadius();
     float circleCenterY = y + circle.getRadius();
 
-    // Set the initial position of the text to the circle's center
     text.setPosition(circleCenterX, circleCenterY);
 
-    // Truncate the text if it doesn't fit within the circle
     float maxTextWidth = circle.getRadius() * 2.0f - 10.0f; // Circle diameter minus padding
     std::string truncatedTextStr = truncateText(text, maxTextWidth);
     text.setString(truncatedTextStr);
 
-    // Re-calculate the origin after setting the truncated text to ensure it's centered
     textRect = text.getLocalBounds();
     text.setOrigin(textRect.left + textRect.width / 2.0f, textRect.top + textRect.height / 2.0f);
 
-    // Adjust the position again to ensure the truncated text is centered within the circle
     text.setPosition(circleCenterX, circleCenterY);
 
-    // Draw the circle and text
     window.draw(circle);
     window.draw(text);
 
-    // Calculate the positions for the children
-    int numChildren = node->children.size();
+    int numChildren = 0;
+    for(size_t i = 0; i < node->children.size(); i++)
+    {
+        if(node->children[i] != nullptr)
+        {
+            numChildren++;
+        }
+    }
     if (numChildren > 0)
     {
-        // Calculate the width needed for the current node's subtree
         float subtreeWidth = calculateSubtreeWidth(node, xOffset);
 
-        // Calculate the start position for the first child node
         float startX = x + circle.getRadius() - subtreeWidth / 2.0f;
 
-        for (size_t i = 0; i < numChildren; ++i)
+        for (size_t i = 0; i <= numChildren; ++i)
         {
-            float childX = startX + i * (subtreeWidth / numChildren);
+            if(node->children[i] == nullptr)
+            {
+                continue;
+            }
+            float childX = startX + i * (subtreeWidth );
             float childY = y + yOffset;
 
             // Draw the connecting line
             sf::Vertex line[] = {
-                sf::Vertex(sf::Vector2f(circleCenterX, circleCenterY), sf::Color::Black),
+                sf::Vertex(sf::Vector2f(circleCenterX, circleCenterY), sf::Color::White),
                 sf::Vertex(sf::Vector2f(childX + circle.getRadius(), childY + circle.getRadius()), sf::Color::Black)};
             window.draw(line, 2, sf::Lines);
 
             // Recursively draw the child node
-            drawTree(window, node->children[i], childX, childY, xOffset / 1.2f, yOffset, level + 1);
+            drawTree(window, node->children[i], childX, childY, xOffset / 1.2f, yOffset);
         }
     }
 
-    // Check if the mouse is hovering over the circle
+    // Check if the user hovers on the node and display
+    // tooltip box with the whole number value
     sf::Vector2i mousePos = sf::Mouse::getPosition(window);
     if (circle.getGlobalBounds().contains(static_cast<float>(mousePos.x), static_cast<float>(mousePos.y)))
     {
-        // Create and position the tooltip box
         sf::RectangleShape tooltip(sf::Vector2f(200, 50));
-        tooltip.setFillColor(sf::Color(255, 255, 255, 200)); // Semi-transparent white
+        tooltip.setFillColor(sf::Color(255, 255, 255, 200)); 
         tooltip.setOutlineColor(sf::Color::Black);
         tooltip.setOutlineThickness(1);
         tooltip.setPosition(static_cast<float>(mousePos.x) + 10, static_cast<float>(mousePos.y) - 60);
 
-        // Create and position the tooltip text
+        
         sf::Text tooltipText;
         tooltipText.setFont(font);
-        tooltipText.setString(nodeDataStr); // Full untruncated text
-        tooltipText.setCharacterSize(15);
+        tooltipText.setString(nodeDataStr); 
+        tooltipText.setCharacterSize(20);
         tooltipText.setFillColor(sf::Color::Black);
         tooltipText.setPosition(tooltip.getPosition().x + 10, tooltip.getPosition().y + 10);
 
-        // Draw the tooltip box and text
         window.draw(tooltip);
         window.draw(tooltipText);
     }
@@ -318,6 +340,9 @@ int Tree<T, max_children>::add_sub_node(Node<T> *parent, Node<T>* child) {
     return 0;
 }
 
+/**
+ * @brief Specialization of the Tree class for binary trees.
+**/
 template <typename T>
 class Tree<T, 2>
 {
@@ -330,8 +355,20 @@ class Tree<T, 2>
         **/
         Tree() : root(nullptr) {};
         
+        /**
+         * @brief Add a root node to the tree, if there is a root already it will be overwritten.
+         * @param node The node to be set as the root of the tree.
+         * @throw invalid_argument If the node is null.
+        **/
         int add_root(Node<T>* node);
 
+        /**
+         * @brief Add a child node to a parent node.
+         * @param parent The parent node to which the child will be added.
+         * @param child The child node to be added.
+         * @throw invalid_argument If the parent is null.
+         * @throw invalid_argument If the parent already has the maximum number of children. 
+        **/
         int add_sub_node(Node<T> *parent, Node<T>* child);
 
         int get_max_children() const
@@ -389,16 +426,6 @@ class Tree<T, 2>
         return Bfs_scan<T>(nullptr);
     }
 
-    static Bfs_scan<T> begin_bfs_scan(Node<T>* root)
-    {
-        return Bfs_scan<T>(root);
-    }
-
-    static Bfs_scan<T> end_bfs_scan(Node<T>* root)
-    {
-        return Bfs_scan<T>(nullptr);
-    }
-
     Bfs_scan<T> begin()
     {
         return Bfs_scan<T>(this->root);
@@ -417,6 +444,191 @@ class Tree<T, 2>
     {
         return heapIterator<T>(nullptr);
     }
+
+    /**
+     * @brief Open a windwo and draw the tree.
+    **/
+    void drawTree()
+    {
+        sf::RenderWindow window(sf::VideoMode(1400, 1000), "Tree Visualization"); 
+        while (window.isOpen()) 
+        {
+            // Keep displaying the window until it's closed
+            sf::Event event; 
+            while (window.pollEvent(event)) 
+            {
+                if (event.type == sf::Event::Closed) 
+                    window.close();
+            }
+
+            window.clear(sf::Color::Black); 
+
+            // Draw tree widgets
+            drawTree(window, root, 650, 100, 200, 150); 
+
+            // display new window
+            window.display(); 
+        }
+    }
+
+    private:
+   
+        std::string formatData(const T &data, int precision = 5)
+        {
+            std::stringstream ss; 
+            ss << std::fixed << std::setprecision(precision) << data; 
+            return ss.str(); 
+        }
+
+        // Helper function to truncate text and add ellipsis if necessary
+        std::string truncateText(const sf::Text &text, float maxWidth)
+        {
+            std::string str = text.getString(); 
+            std::string truncatedStr = str; 
+            sf::Text tempText = text; 
+
+            
+            if (text.getLocalBounds().width > maxWidth)
+            {
+                for (size_t i = 0; i < str.size(); ++i)
+                {
+                    truncatedStr = str.substr(0, i) + "..."; 
+                    tempText.setString(truncatedStr); 
+
+                    if (tempText.getLocalBounds().width > maxWidth) 
+                    {
+                        truncatedStr = str.substr(0, i - 1) + "...";
+                        break;
+                    }
+                }
+            }
+            return truncatedStr;
+        }
+
+        float calculateSubtreeWidth(Node<T> *node, float xOffset)
+        {
+            if (!node || node->children.empty())
+                return 0.0f;
+
+            
+            float totalWidth = 0.0f;
+            for (auto &child : node->children)
+            {
+                totalWidth += calculateSubtreeWidth(child, xOffset) + xOffset;
+            }
+
+            totalWidth -= (2 * xOffset)  ;
+
+            return std::max(totalWidth, xOffset);
+        }
+
+        void drawTree(sf::RenderWindow &window, Node<T> *node, float x, float y, float xOffset, float yOffset)
+        {
+        if (!node)
+            return;
+
+        // Draw the node
+        sf::CircleShape circle(40);
+        circle.setFillColor(sf::Color::Red);
+        circle.setPosition(x, y);
+
+        // Load the font
+        sf::Font font;
+        if (!font.loadFromFile("RobotoFlex-Regular.ttf"))
+        {
+            std::cerr << "Failed to load font\n";
+            return;
+        }
+
+        // Format the node data for display with a precision of 5
+        // std::string nodeDataStr = std::to_string(node->value);
+        std::string nodeDataStr = formatData(node->value);
+
+        // Create the text for the node data
+        sf::Text text;
+        text.setFont(font);
+        text.setString(nodeDataStr);
+        text.setCharacterSize(30);
+        text.setFillColor(sf::Color::Black);
+
+        // Initial centering of text based on its original content
+        sf::FloatRect textRect = text.getLocalBounds();
+        text.setOrigin(textRect.left + textRect.width / 2.0f, textRect.top + textRect.height / 2.0f);
+
+        float circleCenterX = x + circle.getRadius();
+        float circleCenterY = y + circle.getRadius();
+
+        text.setPosition(circleCenterX, circleCenterY);
+
+        float maxTextWidth = circle.getRadius() * 2.0f - 10.0f; // Circle diameter minus padding
+        std::string truncatedTextStr = truncateText(text, maxTextWidth);
+        text.setString(truncatedTextStr);
+
+        textRect = text.getLocalBounds();
+        text.setOrigin(textRect.left + textRect.width / 2.0f, textRect.top + textRect.height / 2.0f);
+
+        text.setPosition(circleCenterX, circleCenterY);
+
+        window.draw(circle);
+        window.draw(text);
+
+        int numChildren = 0;
+        for(size_t i = 0; i < node->children.size(); i++)
+        {
+            if(node->children[i] != nullptr)
+            {
+                numChildren++;
+            }
+        }
+        if (numChildren > 0)
+        {
+            float subtreeWidth = calculateSubtreeWidth(node, xOffset);
+
+            float startX = x + circle.getRadius() - subtreeWidth / 2.0f;
+
+            for (size_t i = 0; i <= numChildren; ++i)
+            {
+                if(node->children[i] == nullptr)
+                {
+                    continue;
+                }
+                float childX = startX + i * (subtreeWidth );
+                float childY = y + yOffset;
+
+                // Draw the connecting line
+                sf::Vertex line[] = {
+                    sf::Vertex(sf::Vector2f(circleCenterX, circleCenterY), sf::Color::White),
+                    sf::Vertex(sf::Vector2f(childX + circle.getRadius(), childY + circle.getRadius()), sf::Color::Black)};
+                window.draw(line, 2, sf::Lines);
+
+                // Recursively draw the child node
+                drawTree(window, node->children[i], childX, childY, xOffset / 1.2f, yOffset);
+            }
+        }
+
+        // Check if the user hovers on the node and display
+        // tooltip box with the whole number value
+        sf::Vector2i mousePos = sf::Mouse::getPosition(window);
+        if (circle.getGlobalBounds().contains(static_cast<float>(mousePos.x), static_cast<float>(mousePos.y)))
+        {
+            sf::RectangleShape tooltip(sf::Vector2f(200, 50));
+            tooltip.setFillColor(sf::Color(255, 255, 255, 200)); 
+            tooltip.setOutlineColor(sf::Color::Black);
+            tooltip.setOutlineThickness(1);
+            tooltip.setPosition(static_cast<float>(mousePos.x) + 10, static_cast<float>(mousePos.y) - 60);
+
+            
+            sf::Text tooltipText;
+            tooltipText.setFont(font);
+            tooltipText.setString(nodeDataStr); 
+            tooltipText.setCharacterSize(20);
+            tooltipText.setFillColor(sf::Color::Black);
+            tooltipText.setPosition(tooltip.getPosition().x + 10, tooltip.getPosition().y + 10);
+
+            window.draw(tooltip);
+            window.draw(tooltipText);
+        }
+        }
 };
 
 template <typename T>

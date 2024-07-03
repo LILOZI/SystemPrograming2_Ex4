@@ -5,7 +5,6 @@
 template <typename T>
 struct Node
 {
-    int key;
     T value;
     vector<Node<T>*> children;
     Node(T value) : value(value) {}
